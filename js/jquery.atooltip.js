@@ -1,9 +1,10 @@
 /*
 	jQuery Version:				jQuery 1.3.2+
-	Plugin Name:				aToolTip V 1.5
+	Plugin Name:				aToolTip V 1.5.1
 	Plugin by: 					Ara Abcarians: http://ara-abcarians.com
 	License:					aToolTip is licensed under a Creative Commons Attribution 3.0 Unported License
-								Read more about this license at --> http://creativecommons.org/licenses/by/3.0/			
+								Read more about this license at --> http://creativecommons.org/licenses/by/3.0/
+	
 */
 (function($) {
     $.fn.aToolTip = function(options) {
@@ -24,13 +25,16 @@
     		xOffset: 5,
     		yOffset: 5,
     		onShow: null,
-    		onHide: null
+    		onHide: null,
+    		open: false,
+    		position: 'right'
     	},
     	// This makes it so the users custom options overrides the default ones
     	settings = $.extend({}, defaults, options);
     
 		return this.each(function() {
 			var obj = $(this);
+			
 			/**
 				Decide weather to use a title attr as the tooltip content
 			*/
@@ -57,9 +61,20 @@
 				Position aToolTip
 			*/
 			positionaToolTip = function(){
+				if ( settings.position == 'right')
+				{
+					startTop = (obj.offset().top - $('#'+settings.toolTipId).outerHeight() - settings.yOffset) + 'px';
+					startLeft = (obj.offset().left + obj.outerWidth() + settings.xOffset) + 'px';				
+				}
+				else if (settings.position == 'bottom')
+				{
+					startTop = (obj.offset().top + obj.outerHeight() + settings.yOffset);
+					startLeft = (obj.offset().left + settings.xOffset);
+				}
+				
 				$('#'+settings.toolTipId).css({
-					top: (obj.offset().top - $('#'+settings.toolTipId).outerHeight() - settings.yOffset) + 'px',
-					left: (obj.offset().left + obj.outerWidth() + settings.xOffset) + 'px'
+					top: startTop,
+					left: startLeft
 				})
 				.stop().fadeIn(settings.inSpeed, function(){
 					if ($.isFunction(settings.onShow)){
@@ -78,22 +93,31 @@
 						settings.onHide(obj);
 					}
 				});				
+			},
+			
+			addaToolTip = function(){
+				// remove already existing tooltip
+				$('#'+settings.toolTipId).remove();
+				//obj.attr({title: ''});
+				obj.removeAttr('title');
+				buildaToolTip();
+				positionaToolTip();
 			};
 			
 			/**
 				Decide what kind of tooltips to display
 			*/
 			// Regular aToolTip
-			if(tipContent && !settings.clickIt){	
+			if(tipContent && !settings.clickIt){
+				// first time
+				if (settings.open) {
+					addaToolTip();
+				}				
 				// Activate on hover	
 				obj.hover(function(){
-					// remove already existing tooltip
-					$('#'+settings.toolTipId).remove();
-					obj.attr({title: ''});
-					buildaToolTip();
-					positionaToolTip();
+					addaToolTip();					
 			    }, function(){ 
-					removeaToolTip();
+					removeaToolTip();					
 			    });	
 		    } 		    
 		    
@@ -101,11 +125,7 @@
 		    if(tipContent && settings.clickIt){
 				// Activate on click	
 				obj.click(function(el){
-					// remove already existing tooltip
-					$('#'+settings.toolTipId).remove();
-					obj.attr({title: ''});
-					buildaToolTip();
-					positionaToolTip();
+					addatooltip();
 					// Click to close tooltip
 					$('#'+settings.closeTipBtn).click(function(){
 						removeaToolTip();
